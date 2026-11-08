@@ -37,6 +37,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          build-args: |
+            NEXT_PUBLIC_API_URL=/api/v1
           push: true
           tags: |
             ${{ env.IMAGE }}:latest

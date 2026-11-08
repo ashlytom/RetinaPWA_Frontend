@@ -3,12 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { IconAlertOctagon, IconAperture, IconEye, IconEyeOff, IconInfo } from "@/components/common/Icons";
+import ThemeToggle from "@/components/common/ThemeToggle";
 import { hasSession, login } from "@/services/auth";
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,51 +33,94 @@ export default function LoginPage() {
   }
 
   const field =
-    "mt-1 w-full rounded-lg border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-600";
+    "w-full rounded border border-line-strong bg-card px-3 py-2.5 text-ink placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40";
 
   return (
-    <main className="mx-auto w-full max-w-sm space-y-6 px-4 py-16">
-      <header>
-        <h1 className="text-2xl font-bold">Sign in</h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Diabetic retinopathy screening – research prototype.
-        </p>
-      </header>
-      <form onSubmit={submit} className="space-y-4">
-        <label className="block text-sm font-medium">
-          Username
-          <input
-            className={field}
-            autoComplete="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </label>
-        <label className="block text-sm font-medium">
-          Password
-          <input
-            className={field}
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        {error && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-            {error}
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-4 px-4 py-10">
+      <div className="flex justify-end">
+        <ThemeToggle />
+      </div>
+
+      <div role="note" className="flex gap-3 rounded-lg border border-warn-line bg-warn-bg p-3 text-warn-fg">
+        <IconInfo className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="text-xs leading-5">
+          <p className="font-semibold uppercase tracking-wider">Investigational device notice</p>
+          <p>Research prototype access only. Not for patient use or definitive clinical diagnosis.</p>
+        </div>
+      </div>
+
+      <section className="rounded-lg border border-line bg-card p-6 shadow-card sm:p-8">
+        <header className="text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-on">
+            <IconAperture className="h-7 w-7" />
+          </span>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Retina DR Screening</h1>
+          <p className="mt-1 text-sm text-muted">Sign in to continue</p>
+        </header>
+
+        <form onSubmit={submit} className="mt-6 space-y-4">
+          {error && (
+            <div
+              role="alert"
+              className="flex gap-3 rounded border border-alert-line bg-alert-bg p-3 text-sm text-alert-fg"
+            >
+              <IconAlertOctagon className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider">Sign-in failed</p>
+                <p>{error}</p>
+              </div>
+            </div>
+          )}
+
+          <label className="block text-sm font-semibold">
+            Username
+            <input
+              className={`${field} mt-1.5 font-mono text-sm font-normal`}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="block text-sm font-semibold">
+            Password
+            <span className="relative mt-1.5 block">
+              <input
+                className={`${field} pr-11 font-normal`}
+                type={showPw ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((s) => !s)}
+                aria-label={showPw ? "Hide password" : "Show password"}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted hover:text-ink"
+              >
+                {showPw ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
+              </button>
+            </span>
+          </label>
+
+          <p className="rounded border border-line bg-subtle p-3 text-xs leading-5 text-muted">
+            <strong className="font-semibold text-ink">Security policy:</strong> 5 consecutive failed attempts lock
+            sign-in for that account for 15 minutes.
           </p>
-        )}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-lg bg-teal-700 px-4 py-3 font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
-        >
-          {busy ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="w-full rounded bg-primary px-4 py-3 font-semibold text-primary-on transition hover:bg-primary-hover active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }

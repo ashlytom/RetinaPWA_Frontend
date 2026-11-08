@@ -2,20 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design tokens: "Clinical Diagnostic Precision". Light is the default; .dark is set on <html>. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --page: #f8fafc;
+  --card: #ffffff;
+  --subtle: #f1f5f9;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --ink: #0f172a;
+  --muted: #64748b;
+
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --primary-ink: #0f766e; /* teal used as text/link colour */
+  --on-primary: #ffffff;
+  --focus: #0f766e;
+
+  --ok: #059669;
+  --ok-fg: #065f46;
+  --ok-bg: #ecfdf5;
+  --ok-line: #a7f3d0;
+  --warn: #d97706;
+  --warn-fg: #92400e;
+  --warn-bg: #fffbeb;
+  --warn-line: #fde68a;
+  --alert: #e11d48;
+  --alert-fg: #9f1239;
+  --alert-bg: #fff1f2;
+  --alert-line: #fecdd3;
+
+  --banner-bg: #0f172a;
+  --banner-fg: #e2e8f0;
+  --shadow: 0 1px 3px 0 rgb(15 23 42 / 0.05), 0 1px 2px -1px rgb(15 23 42 / 0.05);
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --page: #0b1220;
+  --card: #111a2b;
+  --subtle: #17223a;
+  --line: #243247;
+  --line-strong: #34465f;
+  --ink: #e2e8f0;
+  --muted: #94a3b8;
+
+  --primary: #0f766e;
+  --primary-hover: #14877e;
+  --primary-ink: #5eead4;
+  --on-primary: #ffffff;
+  --focus: #5eead4;
+
+  --ok: #34d399;
+  --ok-fg: #6ee7b7;
+  --ok-bg: #06281e;
+  --ok-line: #0b5a41;
+  --warn: #fbbf24;
+  --warn-fg: #fcd34d;
+  --warn-bg: #2a1d05;
+  --warn-line: #6b4a0b;
+  --alert: #fb7185;
+  --alert-fg: #fda4af;
+  --alert-bg: #2d0a14;
+  --alert-line: #7f1d36;
+
+  --banner-bg: #020617;
+  --banner-fg: #cbd5e1;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  padding-bottom: 3.5rem; /* room for the fixed safety banner */
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+    padding-bottom: 0;
+  }
 }

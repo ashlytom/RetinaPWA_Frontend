@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { IconAlertTriangle, IconImagePlus, IconInfo } from "@/components/common/Icons";
+import { IconAlertTriangle, IconCamera, IconImagePlus, IconInfo } from "@/components/common/Icons";
+
+import CameraCapture from "./CameraCapture";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png"];
@@ -28,7 +30,15 @@ export default function ImageUpload({ disabled, onSubmit }: Props) {
   const [dims, setDims] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [canStream, setCanStream] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const nativeCamRef = useRef<HTMLInputElement>(null);
+
+  // Live preview needs getUserMedia (HTTPS or localhost). Otherwise fall back to the device's own camera app.
+  useEffect(() => {
+    setCanStream(typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia);
+  }, []);
 
   useEffect(() => {
     setDims(null);
@@ -63,6 +73,15 @@ export default function ImageUpload({ disabled, onSubmit }: Props) {
           Upload a colour retinal photograph for automated diabetic retinopathy screening.
         </p>
 
+        {cameraOpen ? (
+          <CameraCapture
+            onClose={() => setCameraOpen(false)}
+            onCapture={(f) => {
+              setCameraOpen(false);
+              choose(f);
+            }}
+          />
+        ) : (
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -100,7 +119,30 @@ export default function ImageUpload({ disabled, onSubmit }: Props) {
             className="hidden"
             onChange={(e) => choose(e.target.files?.[0])}
           />
+          <input
+            ref={nativeCamRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => choose(e.target.files?.[0])}
+          />
+          <div className="my-4 flex w-full max-w-xs items-center gap-3 text-xs uppercase tracking-wider text-muted" aria-hidden>
+            <span className="h-px flex-1 bg-line" />
+            or
+            <span className="h-px flex-1 bg-line" />
+          </div>
+          <button
+            type="button"
+            onClick={() => (canStream ? setCameraOpen(true) : nativeCamRef.current?.click())}
+            disabled={disabled}
+            className="inline-flex items-center gap-2 rounded border border-line-strong bg-card px-4 py-2.5 text-sm font-semibold hover:bg-subtle disabled:opacity-50"
+          >
+            <IconCamera className="h-4 w-4" />
+            Take a photo with the camera
+          </button>
         </div>
+        )}
 
         {error && (
           <p role="alert" className="mt-3 flex items-center gap-2 text-sm text-alert-fg">

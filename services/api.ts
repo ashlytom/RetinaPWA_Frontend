@@ -1,8 +1,9 @@
-import { API_URL, clearSession, getAccessToken, refreshSession } from "./auth";
+import { API_URL, clearSession, getAccessToken, refreshSession, setNotice } from "./auth";
 
 export class AuthError extends Error {
   constructor() {
-    super("Your session has expired. Please sign in again.");
+    super("You were signed out. Your session expired, or this account signed in on another device.");
+    setNotice(this.message);
   }
 }
 

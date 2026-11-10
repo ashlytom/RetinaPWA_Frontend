@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -8,7 +9,8 @@ import ThemeToggle from "@/components/common/ThemeToggle";
 import ImageUpload from "@/components/image-upload/ImageUpload";
 import Report from "@/components/report/Report";
 import { AuthError } from "@/services/api";
-import { clearSession, hasSession } from "@/services/auth";
+import { can, getUser, hasSession, logout, type SessionUser } from "@/services/auth";
+import { refreshMe } from "@/services/me";
 import { analyzeImage } from "@/services/prediction";
 import type { PredictionResponse } from "@/types/prediction";
 
@@ -21,17 +23,29 @@ const STEPS = [
 export default function Home() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResponse | null>(null);
 
   useEffect(() => {
-    if (!hasSession()) router.replace("/login");
-    else setReady(true);
+    if (!hasSession()) return void router.replace("/login");
+    const apply = (u: SessionUser | null) => {
+      setUser(u);
+      // Someone who can administer but not screen belongs in the admin console.
+      if (u && !can(u, "screening:use") && u.can_admin) return void router.replace("/admin");
+      setReady(true);
+    };
+    const cached = getUser();
+    if (cached) apply(cached);
+    // Pick up any role changes made since sign-in (and fill in a missing or outdated saved user).
+    refreshMe()
+      .then((u) => (u ? apply(u) : cached ? undefined : router.replace("/login")))
+      .catch(() => router.replace("/login"));
   }, [router]);
 
-  function signOut() {
-    clearSession();
+  async function signOut() {
+    await logout();
     router.replace("/login");
   }
 
@@ -64,6 +78,15 @@ export default function Home() {
             Research prototype · not a medical device
           </span>
           <div className="ml-auto flex items-center gap-2">
+            {user && <span className="hidden font-mono text-xs text-muted md:inline">{user.username}</span>}
+            {user?.can_admin && (
+              <Link
+                href="/admin"
+                className="inline-flex h-9 items-center rounded border border-line-strong bg-card px-3 text-sm font-medium hover:bg-subtle"
+              >
+                Admin console
+              </Link>
+            )}
             <ThemeToggle />
             <button
               onClick={signOut}
@@ -117,7 +140,12 @@ export default function Home() {
           </ol>
         </nav>
 
-        {result ? (
+        {!can(user, "screening:use") ? (
+          <section role="alert" className="rounded-lg border border-warn-line bg-warn-bg p-5 text-warn-fg">
+            <h1 className="text-lg font-semibold">No access to screening</h1>
+            <p className="mt-1 text-sm">Your account does not have permission to use the screening tool. Ask an administrator to assign you a role that includes it.</p>
+          </section>
+        ) : result ? (
           <Report result={result} onReset={() => setResult(null)} />
         ) : (
           <>

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { IconAlertOctagon, IconAperture, IconEye, IconEyeOff, IconInfo } from "@/components/common/Icons";
 import ThemeToggle from "@/components/common/ThemeToggle";
-import { hasSession, login } from "@/services/auth";
+import { getUser, hasSession, login, takeNotice } from "@/services/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,9 +14,11 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (hasSession()) router.replace("/");
+    if (hasSession()) router.replace(getUser()?.can_admin ? "/admin" : "/");
+    else setNotice(takeNotice());
   }, [router]);
 
   async function submit(e: React.FormEvent) {
@@ -24,8 +26,8 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(username.trim(), password);
-      router.replace("/");
+      const user = await login(username.trim(), password);
+      router.replace(user.can_admin ? "/admin" : "/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed.");
       setBusy(false);
@@ -59,6 +61,12 @@ export default function LoginPage() {
         </header>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
+          {notice && !error && (
+            <p role="status" className="flex gap-3 rounded border border-warn-line bg-warn-bg p-3 text-sm text-warn-fg">
+              <IconInfo className="mt-0.5 h-4 w-4 shrink-0" />
+              {notice}
+            </p>
+          )}
           {error && (
             <div
               role="alert"
